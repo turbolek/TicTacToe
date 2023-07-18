@@ -5,6 +5,8 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     [SerializeField]
+    private int _requiredSequenceLength = 3;
+    [SerializeField]
     private BoardSpawner _boardSpawner;
 
     public GameState CurrentGameState { get; private set; }
@@ -18,19 +20,27 @@ public class GameManager : MonoBehaviour
         CurrentGameState = GameState.Player1Turn;
     }
 
-
-
     private void OnBoardStateChanged(BoardSpawner board)
     {
         switch (CurrentGameState)
         {
             case GameState.Player1Turn:
                 {
+                    if (board.LongestSequence >= _requiredSequenceLength)
+                    {
+                        CurrentGameState = GameState.GameOver;
+                        Debug.Log("Player 1 wins!");
+                    }
                     CurrentGameState = GameState.Player2Turn;
                     break;
                 }
             case GameState.Player2Turn:
                 {
+                    if (board.LongestSequence >= _requiredSequenceLength)
+                    {
+                        CurrentGameState = GameState.GameOver;
+                        Debug.Log("Player 2 wins!");
+                    }
                     CurrentGameState = GameState.Player1Turn;
                     break;
                 }
