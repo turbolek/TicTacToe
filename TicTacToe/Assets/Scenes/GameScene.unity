@@ -542,8 +542,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 805fa9fda46184c45b53e6e62c1122c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _boardHeight: 5
-  _boardWidth: 5
+  _boardHeight: 3
+  _boardWidth: 3
   _boardParent: {fileID: 253850822}
   _boardButtonPrefab: {fileID: 8101203933895725834, guid: 100ca953f9172c34e84a7d79a0260d35,
     type: 3}
