@@ -8,10 +8,7 @@ public class BoardSpawner : MonoBehaviour
 {
     public Action<BoardSpawner> BoardStateChanged;
 
-    [SerializeField]
-    private int _boardHeight;
-    [SerializeField]
-    private int _boardWidth;
+
     [SerializeField]
     private Transform _boardParent;
     [SerializeField]
@@ -21,17 +18,25 @@ public class BoardSpawner : MonoBehaviour
 
     private GameManager _gameManager;
     private BoardButton[] _boardButtons;
+    private GameObject[] _rows;
 
     public int LongestSequence { get; private set; } = 0;
 
+    private int _boardHeight, _boardWidth;
+
     public void Init(GameManager gameManager)
     {
+        _boardHeight = gameManager.BoardHeight;
+        _boardWidth = gameManager.BoardWidth;
+
+        _rows = new GameObject[_boardHeight];
         _boardButtons = new BoardButton[_boardHeight * _boardWidth];
         _gameManager = gameManager;
         int buttonIndex = 0;
         for (int i = 0; i < _boardHeight; i++)
         {
             GameObject row = Instantiate(_boardRowPrefab, _boardParent);
+            _rows[i] = row;
             for (int j = 0; j < _boardWidth; j++)
             {
                 BoardButton button = Instantiate(_boardButtonPrefab, row.transform);
@@ -45,13 +50,23 @@ public class BoardSpawner : MonoBehaviour
 
     public void Clear()
     {
-        for (int i = _boardButtons.Length - 1; i >= 0; i--)
+        if (_boardButtons != null)
         {
-            _boardButtons[i].ButtonStateChanged -= OnFieldStateChanged;
-            Destroy(_boardButtons[i]);
+            for (int i = _boardButtons.Length - 1; i >= 0; i--)
+            {
+                _boardButtons[i].ButtonStateChanged -= OnFieldStateChanged;
+            }
         }
-
         _boardButtons = null;
+
+        if (_rows != null)
+        {
+            for (int i = _rows.Length - 1; i >= 0; i--)
+            {
+                Destroy(_rows[i].gameObject);
+            }
+        }
+        LongestSequence = 0;
     }
 
     private void OnFieldStateChanged(BoardButton button)
