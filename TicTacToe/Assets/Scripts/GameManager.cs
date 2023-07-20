@@ -29,7 +29,25 @@ public class GameManager : MonoBehaviour
 
     private Player _player1;
     private Player _player2;
-    public Player ActivePlayer { get; private set; }
+    public Player ActivePlayer
+    {
+        get
+        {
+            if (_player1.IsActive)
+            {
+                return _player1;
+            }
+            else if (_player2.IsActive)
+            {
+                return _player2;
+            }
+            else
+            {
+                return null;
+            }
+        }
+    }
+    private Player _startingPlayer;
 
     public GameState CurrentGameState { get; private set; }
 
@@ -47,12 +65,12 @@ public class GameManager : MonoBehaviour
 
     private void StartGame()
     {
-        _player1 = new Player("Player 1");
-        _player2 = new Player("Player 2");
-        ActivePlayer = GetStartingPlayer();
+        _player1 = new Player("Player 1", PlayerType.HumanPlayer);
+        _player2 = new Player("Player 2", PlayerType.CPU);
 
-        ActivePlayer.Mark = "X";
-        GetNextPlayer().Mark = "O";
+        _startingPlayer = GetStartingPlayer();
+        _startingPlayer.Mark = "X";
+        GetNextPlayer(_startingPlayer).Mark = "O";
 
         _startGameButton.gameObject.SetActive(false);
         CurrentGameState = GameState.Setup;
@@ -69,9 +87,9 @@ public class GameManager : MonoBehaviour
         return diceRoll < 0.5f ? _player1 : _player2;
     }
 
-    private Player GetNextPlayer()
+    private Player GetNextPlayer(Player currentPlayer)
     {
-        return ActivePlayer == _player1 ? _player2 : _player1;
+        return currentPlayer == _player1 ? _player2 : _player1;
     }
 
     private void OnBoardStateChanged(BoardSpawner board)
@@ -90,7 +108,6 @@ public class GameManager : MonoBehaviour
                     }
                     else
                     {
-                        ActivePlayer = GetNextPlayer();
                         StartTurn();
                     }
                     break;
@@ -98,12 +115,44 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void StartTurn()
+    private async void StartTurn()
     {
         _timeotCancellationTokenSource?.Cancel();
         _timeotCancellationTokenSource = new CancellationTokenSource();
+
+        ActivateNextPlayer();
+
+        var playerTask = ActivePlayer.GetField(_boardSpawner, _timeotCancellationTokenSource.Token);
+        var timeouteTask = StartTurnCountdown(_timeotCancellationTokenSource.Token);
         Debug.Log(ActivePlayer.Name + "'s turn");
-        StartTurnCountdown(_timeotCancellationTokenSource.Token);
+
+        await Task.WhenAny(playerTask, timeouteTask);
+        _timeotCancellationTokenSource.Cancel();
+
+        BoardButton selectedField = playerTask.Result;
+
+        if (selectedField != null)
+        {
+            selectedField.SetOwner(ActivePlayer);
+        }
+        else
+        {
+            FinishGame(GetNextPlayer(ActivePlayer));
+        }
+    }
+
+    private void ActivateNextPlayer()
+    {
+        if (ActivePlayer == null)
+        {
+            _startingPlayer.Activate();
+        }
+        else
+        {
+            Player activePlayer = ActivePlayer;
+            activePlayer?.Deactivate();
+            GetNextPlayer(activePlayer).Activate();
+        }
     }
 
     private async Task StartTurnCountdown(CancellationToken cancellationToken)
@@ -113,18 +162,14 @@ public class GameManager : MonoBehaviour
         {
             timer -= Time.deltaTime;
             await Task.Yield();
-            Debug.Log(timer);
+            //Debug.Log(timer);
         }
 
-        if (!cancellationToken.IsCancellationRequested)
-        {
-            FinishGame(GetNextPlayer());
-        }
+
     }
 
     private void FinishGame(Player winner)
     {
-        _timeotCancellationTokenSource?.Cancel();
         CurrentGameState = GameState.GameOver;
         if (winner != null)
         {

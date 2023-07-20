@@ -17,7 +17,7 @@ public class BoardSpawner : MonoBehaviour
     private GameObject _boardRowPrefab;
 
     private GameManager _gameManager;
-    private BoardButton[] _boardButtons;
+    public BoardButton[] BoardButtons { get; private set; }
     private GameObject[] _rows;
 
     public int LongestSequence { get; private set; } = 0;
@@ -26,11 +26,12 @@ public class BoardSpawner : MonoBehaviour
 
     public void Init(GameManager gameManager)
     {
+        BoardButton.ButtonStateChanged += OnFieldStateChanged;
         _boardHeight = gameManager.BoardHeight;
         _boardWidth = gameManager.BoardWidth;
 
         _rows = new GameObject[_boardHeight];
-        _boardButtons = new BoardButton[_boardHeight * _boardWidth];
+        BoardButtons = new BoardButton[_boardHeight * _boardWidth];
         _gameManager = gameManager;
         int buttonIndex = 0;
         for (int i = 0; i < _boardHeight; i++)
@@ -40,9 +41,8 @@ public class BoardSpawner : MonoBehaviour
             for (int j = 0; j < _boardWidth; j++)
             {
                 BoardButton button = Instantiate(_boardButtonPrefab, row.transform);
-                button.ButtonStateChanged += OnFieldStateChanged;
                 button.Initialize(buttonIndex, gameManager);
-                _boardButtons[buttonIndex] = button;
+                BoardButtons[buttonIndex] = button;
                 buttonIndex++;
             }
         }
@@ -50,14 +50,7 @@ public class BoardSpawner : MonoBehaviour
 
     public void Clear()
     {
-        if (_boardButtons != null)
-        {
-            for (int i = _boardButtons.Length - 1; i >= 0; i--)
-            {
-                _boardButtons[i].ButtonStateChanged -= OnFieldStateChanged;
-            }
-        }
-        _boardButtons = null;
+        BoardButton.ButtonStateChanged -= OnFieldStateChanged;
 
         if (_rows != null)
         {
@@ -66,12 +59,15 @@ public class BoardSpawner : MonoBehaviour
                 Destroy(_rows[i].gameObject);
             }
         }
+
+        _rows = null;
+        BoardButtons = null;
         LongestSequence = 0;
     }
 
     public bool HasEmptyField()
     {
-        foreach (BoardButton boardButton in _boardButtons)
+        foreach (BoardButton boardButton in BoardButtons)
         {
             if (boardButton.Owner == null)
             {
@@ -171,7 +167,7 @@ public class BoardSpawner : MonoBehaviour
 
         if (sourceIndexInRow > 0)
         {
-            targetButton = _boardButtons[sourceIndex - 1];
+            targetButton = BoardButtons[sourceIndex - 1];
         }
 
         return targetButton;
@@ -186,7 +182,7 @@ public class BoardSpawner : MonoBehaviour
 
         if (sourceIndexInRow < _boardWidth - 1)
         {
-            targetButton = _boardButtons[sourceIndex + 1];
+            targetButton = BoardButtons[sourceIndex + 1];
         }
 
         return targetButton;
@@ -201,7 +197,7 @@ public class BoardSpawner : MonoBehaviour
 
         if (sourceColumnIndex > 0)
         {
-            targetButton = _boardButtons[sourceIndex - _boardWidth];
+            targetButton = BoardButtons[sourceIndex - _boardWidth];
         }
 
         return targetButton;
@@ -216,7 +212,7 @@ public class BoardSpawner : MonoBehaviour
 
         if (sourceColumnIndex < _boardHeight - 1)
         {
-            targetButton = _boardButtons[sourceIndex + _boardWidth];
+            targetButton = BoardButtons[sourceIndex + _boardWidth];
         }
 
         return targetButton;

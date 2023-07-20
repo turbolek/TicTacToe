@@ -5,7 +5,8 @@ using UnityEngine.UI;
 
 public class BoardButton : MonoBehaviour
 {
-    public event Action<BoardButton> ButtonStateChanged;
+    public static event Action<BoardButton> ButtonStateChanged;
+    public static event Action<BoardButton> ButtonClicked;
 
     [SerializeField]
     private Button _button;
@@ -26,14 +27,7 @@ public class BoardButton : MonoBehaviour
 
     private void OnButtonClicked()
     {
-        switch (_gameManager.CurrentGameState)
-        {
-            case GameState.Gameplay:
-                {
-                    SetOwner(_gameManager.ActivePlayer);
-                    break;
-                }
-        }
+        ButtonClicked?.Invoke(this);
     }
 
     public void SetOwner(Player owner)
