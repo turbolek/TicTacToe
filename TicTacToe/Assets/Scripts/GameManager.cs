@@ -1,5 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,6 +10,8 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private Button _startGameButton;
 
+    [SerializeField]
+    private float _timeLimit = 5f;
     [SerializeField]
     private int _requiredSequenceLength = 3;
     [SerializeField]
@@ -20,6 +24,8 @@ public class GameManager : MonoBehaviour
 
     [SerializeField]
     private BoardSpawner _boardSpawner;
+
+    private CancellationTokenSource _timeotCancellationTokenSource;
 
     private Player _player1;
     private Player _player2;
@@ -53,6 +59,8 @@ public class GameManager : MonoBehaviour
         _boardSpawner.Clear();
         _boardSpawner.Init(this);
         CurrentGameState = GameState.Gameplay;
+
+        StartTurn();
     }
 
     private Player GetStartingPlayer()
@@ -83,15 +91,40 @@ public class GameManager : MonoBehaviour
                     else
                     {
                         ActivePlayer = GetNextPlayer();
-                        Debug.Log(ActivePlayer.Name + "'s turn");
+                        StartTurn();
                     }
                     break;
                 }
         }
     }
 
+    private void StartTurn()
+    {
+        _timeotCancellationTokenSource?.Cancel();
+        _timeotCancellationTokenSource = new CancellationTokenSource();
+        Debug.Log(ActivePlayer.Name + "'s turn");
+        StartTurnCountdown(_timeotCancellationTokenSource.Token);
+    }
+
+    private async Task StartTurnCountdown(CancellationToken cancellationToken)
+    {
+        float timer = _timeLimit;
+        while (timer > 0 && !cancellationToken.IsCancellationRequested)
+        {
+            timer -= Time.deltaTime;
+            await Task.Yield();
+            Debug.Log(timer);
+        }
+
+        if (!cancellationToken.IsCancellationRequested)
+        {
+            FinishGame(GetNextPlayer());
+        }
+    }
+
     private void FinishGame(Player winner)
     {
+        _timeotCancellationTokenSource?.Cancel();
         CurrentGameState = GameState.GameOver;
         if (winner != null)
         {
