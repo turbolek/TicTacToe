@@ -69,6 +69,18 @@ public class BoardSpawner : MonoBehaviour
         LongestSequence = 0;
     }
 
+    public bool HasEmptyField()
+    {
+        foreach (BoardButton boardButton in _boardButtons)
+        {
+            if (boardButton.Owner == null)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void OnFieldStateChanged(BoardButton button)
     {
         LongestSequence = GetLongestSequence(button);

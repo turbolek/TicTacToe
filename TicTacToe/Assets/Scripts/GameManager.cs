@@ -34,6 +34,11 @@ public class GameManager : MonoBehaviour
         _startGameButton.onClick.AddListener(StartGame);
     }
 
+    private void OnDestroy()
+    {
+        _boardSpawner.BoardStateChanged -= OnBoardStateChanged;
+    }
+
     private void StartGame()
     {
         _player1 = new Player("Player 1");
@@ -69,9 +74,11 @@ public class GameManager : MonoBehaviour
                 {
                     if (board.LongestSequence >= _requiredSequenceLength)
                     {
-                        CurrentGameState = GameState.GameOver;
-                        Debug.Log(ActivePlayer.Name + " wins!");
-                        _startGameButton.gameObject.SetActive(true);
+                        FinishGame(ActivePlayer);
+                    }
+                    else if (!board.HasEmptyField())
+                    {
+                        FinishGame(null);
                     }
                     else
                     {
@@ -81,5 +88,19 @@ public class GameManager : MonoBehaviour
                     break;
                 }
         }
+    }
+
+    private void FinishGame(Player winner)
+    {
+        CurrentGameState = GameState.GameOver;
+        if (winner != null)
+        {
+            Debug.Log(winner.Name + " wins!");
+        }
+        else
+        {
+            Debug.Log("Draw!");
+        }
+        _startGameButton.gameObject.SetActive(true);
     }
 }
