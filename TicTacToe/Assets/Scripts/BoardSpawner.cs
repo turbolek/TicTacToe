@@ -140,7 +140,7 @@ public class BoardSpawner : MonoBehaviour
         BoardButton currentButton = sourceButton;
         BoardButton neighbour = firstGetNeighbourMethod.Invoke(currentButton);
 
-        while (neighbour != null && neighbour.State == currentButton.State)
+        while (neighbour != null && neighbour.Owner == currentButton.Owner)
         {
             sequence++;
             currentButton = neighbour;

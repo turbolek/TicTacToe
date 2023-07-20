@@ -1,7 +1,6 @@
 ﻿public enum GameState
 {
     Setup = 0,
-    Player1Turn = 100,
-    Player2Turn = 200,
+    Gameplay = 100,
     GameOver = 300
 }

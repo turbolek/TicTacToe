@@ -21,6 +21,10 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private BoardSpawner _boardSpawner;
 
+    private Player _player1;
+    private Player _player2;
+    public Player ActivePlayer { get; private set; }
+
     public GameState CurrentGameState { get; private set; }
 
     // Start is called before the first frame update
@@ -32,42 +36,47 @@ public class GameManager : MonoBehaviour
 
     private void StartGame()
     {
+        _player1 = new Player("Player 1");
+        _player2 = new Player("Player 2");
+        ActivePlayer = GetStartingPlayer();
+
+        ActivePlayer.Mark = "X";
+        GetNextPlayer().Mark = "O";
+
         _startGameButton.gameObject.SetActive(false);
         CurrentGameState = GameState.Setup;
         _boardSpawner.Clear();
         _boardSpawner.Init(this);
-        CurrentGameState = GameState.Player1Turn;
+        CurrentGameState = GameState.Gameplay;
+    }
+
+    private Player GetStartingPlayer()
+    {
+        float diceRoll = Random.Range(0f, 1f);
+        return diceRoll < 0.5f ? _player1 : _player2;
+    }
+
+    private Player GetNextPlayer()
+    {
+        return ActivePlayer == _player1 ? _player2 : _player1;
     }
 
     private void OnBoardStateChanged(BoardSpawner board)
     {
         switch (CurrentGameState)
         {
-            case GameState.Player1Turn:
+            case GameState.Gameplay:
                 {
                     if (board.LongestSequence >= _requiredSequenceLength)
                     {
                         CurrentGameState = GameState.GameOver;
-                        Debug.Log("Player 1 wins!");
+                        Debug.Log(ActivePlayer.Name + " wins!");
                         _startGameButton.gameObject.SetActive(true);
                     }
                     else
                     {
-                        CurrentGameState = GameState.Player2Turn;
-                    }
-                    break;
-                }
-            case GameState.Player2Turn:
-                {
-                    if (board.LongestSequence >= _requiredSequenceLength)
-                    {
-                        CurrentGameState = GameState.GameOver;
-                        Debug.Log("Player 2 wins!");
-                        _startGameButton.gameObject.SetActive(true);
-                    }
-                    else
-                    {
-                        CurrentGameState = GameState.Player1Turn;
+                        ActivePlayer = GetNextPlayer();
+                        Debug.Log(ActivePlayer.Name + "'s turn");
                     }
                     break;
                 }

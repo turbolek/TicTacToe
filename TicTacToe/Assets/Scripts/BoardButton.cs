@@ -12,57 +12,40 @@ public class BoardButton : MonoBehaviour
     [SerializeField]
     private TMP_Text _text;
     public int Index { get; private set; }
-    public BoardFieldState State { get; private set; }
 
     private GameManager _gameManager;
+    public Player Owner { get; private set; }
 
     public void Initialize(int index, GameManager gameManager)
     {
         _gameManager = gameManager;
         Index = index;
         _button.onClick.AddListener(OnButtonClicked);
-        SetState(BoardFieldState.Empty);
+        SetOwner(null);
     }
 
     private void OnButtonClicked()
     {
         switch (_gameManager.CurrentGameState)
         {
-            case GameState.Player1Turn:
+            case GameState.Gameplay:
                 {
-                    SetState(BoardFieldState.Player1);
-                    break;
-                }
-            case GameState.Player2Turn:
-                {
-                    SetState(BoardFieldState.Player2);
+                    SetOwner(_gameManager.ActivePlayer);
                     break;
                 }
         }
     }
 
-    public void SetState(BoardFieldState state)
+    public void SetOwner(Player owner)
     {
-        State = state;
-        _button.interactable = State == BoardFieldState.Empty;
-
-        switch (state)
+        Owner = owner;
+        if (owner != null)
         {
-            case BoardFieldState.Player1:
-                {
-                    _text.text = "X";
-                    break;
-                }
-            case BoardFieldState.Player2:
-                {
-                    _text.text = "O";
-                    break;
-                }
-            case BoardFieldState.Empty:
-                {
-                    _text.text = "";
-                    break;
-                }
+            _text.text = owner.Mark;
+        }
+        else
+        {
+            _text.text = "";
         }
 
         ButtonStateChanged?.Invoke(this);
