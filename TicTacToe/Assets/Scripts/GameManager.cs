@@ -31,8 +31,7 @@ public class GameManager : MonoBehaviour
     private CancellationTokenSource _timeotCancellationTokenSource;
     private CancellationTokenSource _turnCancellationTokenSource;
 
-    private List<BoardState> _boardStates;
-    private int _currentBoardStateIndex = 0;
+    private Stack<BoardState> _boardStates;
 
     private Player _player1;
     private Player _player2;
@@ -71,8 +70,7 @@ public class GameManager : MonoBehaviour
 
     private void StartGame()
     {
-        _boardStates = new List<BoardState>();
-        _currentBoardStateIndex = 0;
+        _boardStates = new Stack<BoardState>();
         _player1 = new Player("Player 1", PlayerType.HumanPlayer, FieldOwnerType.Player1);
         _player2 = new Player("Player 2", PlayerType.CPU, FieldOwnerType.Player2);
 
@@ -87,6 +85,9 @@ public class GameManager : MonoBehaviour
         CurrentGameState = GameState.Gameplay;
 
         _turnCancellationTokenSource = new CancellationTokenSource();
+
+        _boardStates.Push(_boardSpawner.GetCurrentBoardState());
+
         StartTurn(_startingPlayer, _turnCancellationTokenSource.Token);
     }
 
@@ -98,7 +99,17 @@ public class GameManager : MonoBehaviour
 
     private Player GetNextPlayer(Player currentPlayer)
     {
-        return currentPlayer == _player1 ? _player2 : _player1;
+        if (currentPlayer == _player1)
+        {
+            return _player2;
+        }
+
+        if (currentPlayer == _player2)
+        {
+            return _player1;
+        }
+
+        return _startingPlayer;
     }
 
     private void CheckBoard()
@@ -117,14 +128,7 @@ public class GameManager : MonoBehaviour
                     }
                     else
                     {
-
-                        for (int i = _currentBoardStateIndex; i < _boardStates.Count; i++)
-                        {
-                            _boardStates.RemoveAt(i);
-                        }
-
-                        _boardStates.Add(_boardSpawner.GetCurrentBoardState());
-                        _currentBoardStateIndex++;
+                        _boardStates.Push(_boardSpawner.GetCurrentBoardState());
 
                         StartTurn(GetNextPlayer(ActivePlayer), _turnCancellationTokenSource.Token);
                     }
@@ -148,25 +152,27 @@ public class GameManager : MonoBehaviour
 
         Debug.Log(ActivePlayer.Name + "'s turn");
 
-        while (!(playerTask.IsCompleted || timeoutTask.IsCompleted))
+        while (!(playerTask.IsCompleted || timeoutTask.IsCompleted || cancellationToken.IsCancellationRequested))
         {
             await Task.Yield();
         }
 
         _timeotCancellationTokenSource.Cancel();
-
-        if (playerTask.Status == TaskStatus.RanToCompletion)
+        if (!cancellationToken.IsCancellationRequested)
         {
-            BoardButton selectedField = playerTask.Result;
-            selectedField.SetOwner(ActivePlayer);
-            CheckBoard();
-        }
 
-        else if (timeoutTask.Status == TaskStatus.RanToCompletion)
-        {
-            FinishGame(GetNextPlayer(ActivePlayer));
-        }
+            if (playerTask.Status == TaskStatus.RanToCompletion)
+            {
+                BoardButton selectedField = playerTask.Result;
+                selectedField.SetOwner(ActivePlayer);
+                CheckBoard();
+            }
 
+            else if (timeoutTask.Status == TaskStatus.RanToCompletion)
+            {
+                FinishGame(GetNextPlayer(ActivePlayer));
+            }
+        }
     }
 
     private async Task StartTurnCountdown(CancellationToken cancellationToken)
@@ -195,19 +201,14 @@ public class GameManager : MonoBehaviour
 
     private void Undo()
     {
-        int targetStateIndex = GetUndoTargetStateIndex();
-
-        if (targetStateIndex >= 0 && targetStateIndex < _boardStates.Count)
+        BoardState previousBoardState = GetUndoTargetState();
+        if (previousBoardState != null)
         {
-            BoardState previousBoardState = _boardStates[targetStateIndex];
-            if (previousBoardState != null)
-            {
-                CancelCurrentTurn();
-                _currentBoardStateIndex = targetStateIndex;
-                _boardSpawner.LoadBoardState(previousBoardState);
-                Player playerToActivate = GetPlayerByFieldOwnerType(previousBoardState.ActivePlayer);
-                StartTurn(playerToActivate, _turnCancellationTokenSource.Token);
-            }
+            CancelCurrentTurn();
+            _boardSpawner.LoadBoardState(previousBoardState);
+            Player playerToActivate = GetNextPlayer(GetPlayerByFieldOwnerType(previousBoardState.ActivePlayer));
+            _boardStates.Push(previousBoardState);
+            StartTurn(playerToActivate, _turnCancellationTokenSource.Token);
         }
     }
 
@@ -217,27 +218,26 @@ public class GameManager : MonoBehaviour
         _turnCancellationTokenSource = new CancellationTokenSource();
     }
 
-    private int GetUndoTargetStateIndex()
+    private BoardState GetUndoTargetState()
     {
-        if (_boardStates.Count < 1)
+        BoardState targetState = null;
+
+        if (_boardStates.Count > 0)
         {
-            return -1;
+            targetState = _boardStates.Pop();
         }
 
-        int targetIndex = _currentBoardStateIndex - 1;
-
-        while (targetIndex >= 0)
+        while (_boardStates.Count > 0)
         {
-            BoardState boardState = _boardStates[targetIndex];
-            Player activePlayer = GetPlayerByFieldOwnerType(boardState.ActivePlayer);
-            if (activePlayer.Type == PlayerType.HumanPlayer)
+            targetState = _boardStates.Pop();
+            Player activePlayer = GetPlayerByFieldOwnerType(targetState.ActivePlayer);
+            if (activePlayer == null || activePlayer.Type == PlayerType.CPU)
             {
                 break;
             }
-            targetIndex--;
         }
 
-        return targetIndex;
+        return targetState;
     }
 
     public Player GetPlayerByFieldOwnerType(FieldOwnerType fieldOwnerType)
@@ -253,5 +253,10 @@ public class GameManager : MonoBehaviour
         }
 
         return null;
+    }
+
+    public FieldOwnerType GetActivePlayerFieldOwnerType()
+    {
+        return ActivePlayer != null ? ActivePlayer.FieldOwnerType : FieldOwnerType.Empty;
     }
 }

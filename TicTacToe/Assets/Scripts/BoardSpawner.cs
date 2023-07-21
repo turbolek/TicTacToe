@@ -264,7 +264,7 @@ public class BoardSpawner : MonoBehaviour
         BoardState boardState = new BoardState();
         boardState.Width = _boardWidth;
         boardState.Height = _boardHeight;
-        boardState.ActivePlayer = _gameManager.ActivePlayer.FieldOwnerType;
+        boardState.ActivePlayer = _gameManager.GetActivePlayerFieldOwnerType();
         boardState.FieldOwners = new FieldOwnerType[BoardButtons.Length];
 
         foreach (BoardButton boardButton in BoardButtons)
