@@ -9,15 +9,17 @@ public class Player
     public string Mark;
     public bool IsActive { get; private set; }
 
+    public FieldOwnerType FieldOwnerType { get; private set; }
     public PlayerType Type { get; private set; }
     private FieldGetter _fieldGetter;
 
-    public Player(string name, PlayerType type)
+    public Player(string name, PlayerType type, FieldOwnerType fieldOwnerType)
     {
         Type = type;
         Name = name;
 
         _fieldGetter = GetFieldGetter(type);
+        FieldOwnerType = fieldOwnerType;
     }
 
     public void Activate()

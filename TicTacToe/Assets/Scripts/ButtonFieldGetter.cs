@@ -10,13 +10,12 @@ public class ButtonFieldGetter : FieldGetter
         _clickedButton = null;
         BoardButton.ButtonClicked += OnButtonClicked;
 
-        while (_clickedButton == null && !cancellationToken.IsCancellationRequested)
+        while (_clickedButton == null)
         {
             await Task.Yield();
         }
 
         BoardButton.ButtonClicked -= OnButtonClicked;
-
         return _clickedButton;
     }
 

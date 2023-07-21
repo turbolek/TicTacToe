@@ -29,10 +29,15 @@ public class BoardSpawner : MonoBehaviour
         BoardButton.ButtonStateChanged += OnFieldStateChanged;
         _boardHeight = gameManager.BoardHeight;
         _boardWidth = gameManager.BoardWidth;
+        _gameManager = gameManager;
 
+        SpawnButtons();
+    }
+
+    private void SpawnButtons()
+    {
         _rows = new GameObject[_boardHeight];
         BoardButtons = new BoardButton[_boardHeight * _boardWidth];
-        _gameManager = gameManager;
         int buttonIndex = 0;
         for (int i = 0; i < _boardHeight; i++)
         {
@@ -41,17 +46,15 @@ public class BoardSpawner : MonoBehaviour
             for (int j = 0; j < _boardWidth; j++)
             {
                 BoardButton button = Instantiate(_boardButtonPrefab, row.transform);
-                button.Initialize(buttonIndex, gameManager);
+                button.Initialize(buttonIndex, _gameManager);
                 BoardButtons[buttonIndex] = button;
                 buttonIndex++;
             }
         }
     }
 
-    public void Clear()
+    private void ClearBoard()
     {
-        BoardButton.ButtonStateChanged -= OnFieldStateChanged;
-
         if (_rows != null)
         {
             for (int i = _rows.Length - 1; i >= 0; i--)
@@ -63,6 +66,12 @@ public class BoardSpawner : MonoBehaviour
         _rows = null;
         BoardButtons = null;
         LongestSequence = 0;
+    }
+
+    public void Clear()
+    {
+        BoardButton.ButtonStateChanged -= OnFieldStateChanged;
+        ClearBoard();
     }
 
     public bool HasEmptyField()
@@ -248,5 +257,35 @@ public class BoardSpawner : MonoBehaviour
         BoardButton rightUpNeighbour = rightNeighbour != null ? GetUpNeighbour(rightNeighbour) : null;
 
         return rightUpNeighbour;
+    }
+
+    public BoardState GetCurrentBoardState()
+    {
+        BoardState boardState = new BoardState();
+        boardState.Width = _boardWidth;
+        boardState.Height = _boardHeight;
+        boardState.ActivePlayer = _gameManager.ActivePlayer.FieldOwnerType;
+        boardState.FieldOwners = new FieldOwnerType[BoardButtons.Length];
+
+        foreach (BoardButton boardButton in BoardButtons)
+        {
+            boardState.FieldOwners[boardButton.Index] = boardButton.Owner != null ? boardButton.Owner.FieldOwnerType : FieldOwnerType.Empty;
+        }
+
+        return boardState;
+    }
+
+    public void LoadBoardState(BoardState boardState)
+    {
+        _boardWidth = boardState.Width;
+        _boardHeight = boardState.Height;
+
+        ClearBoard();
+        SpawnButtons();
+
+        foreach (BoardButton boardButton in BoardButtons)
+        {
+            boardButton.SetOwner(_gameManager.GetPlayerByFieldOwnerType(boardState.FieldOwners[boardButton.Index]));
+        }
     }
 }

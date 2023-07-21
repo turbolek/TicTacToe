@@ -11,6 +11,9 @@ public class GameManager : MonoBehaviour
     private Button _startGameButton;
 
     [SerializeField]
+    private Button _undoButton;
+
+    [SerializeField]
     private float _timeLimit = 5f;
     [SerializeField]
     private int _requiredSequenceLength = 3;
@@ -26,6 +29,10 @@ public class GameManager : MonoBehaviour
     private BoardSpawner _boardSpawner;
 
     private CancellationTokenSource _timeotCancellationTokenSource;
+    private CancellationTokenSource _turnCancellationTokenSource;
+
+    private List<BoardState> _boardStates;
+    private int _currentBoardStateIndex = 0;
 
     private Player _player1;
     private Player _player2;
@@ -54,19 +61,20 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        _boardSpawner.BoardStateChanged += OnBoardStateChanged;
         _startGameButton.onClick.AddListener(StartGame);
+        _undoButton.onClick.AddListener(Undo);
     }
 
     private void OnDestroy()
     {
-        _boardSpawner.BoardStateChanged -= OnBoardStateChanged;
     }
 
     private void StartGame()
     {
-        _player1 = new Player("Player 1", PlayerType.HumanPlayer);
-        _player2 = new Player("Player 2", PlayerType.CPU);
+        _boardStates = new List<BoardState>();
+        _currentBoardStateIndex = 0;
+        _player1 = new Player("Player 1", PlayerType.HumanPlayer, FieldOwnerType.Player1);
+        _player2 = new Player("Player 2", PlayerType.CPU, FieldOwnerType.Player2);
 
         _startingPlayer = GetStartingPlayer();
         _startingPlayer.Mark = "X";
@@ -78,7 +86,8 @@ public class GameManager : MonoBehaviour
         _boardSpawner.Init(this);
         CurrentGameState = GameState.Gameplay;
 
-        StartTurn();
+        _turnCancellationTokenSource = new CancellationTokenSource();
+        StartTurn(_startingPlayer, _turnCancellationTokenSource.Token);
     }
 
     private Player GetStartingPlayer()
@@ -92,80 +101,82 @@ public class GameManager : MonoBehaviour
         return currentPlayer == _player1 ? _player2 : _player1;
     }
 
-    private void OnBoardStateChanged(BoardSpawner board)
+    private void CheckBoard()
     {
         switch (CurrentGameState)
         {
             case GameState.Gameplay:
                 {
-                    if (board.LongestSequence >= _requiredSequenceLength)
+                    if (_boardSpawner.LongestSequence >= _requiredSequenceLength)
                     {
                         FinishGame(ActivePlayer);
                     }
-                    else if (!board.HasEmptyField())
+                    else if (!_boardSpawner.HasEmptyField())
                     {
                         FinishGame(null);
                     }
                     else
                     {
-                        StartTurn();
+
+                        for (int i = _currentBoardStateIndex; i < _boardStates.Count; i++)
+                        {
+                            _boardStates.RemoveAt(i);
+                        }
+
+                        _boardStates.Add(_boardSpawner.GetCurrentBoardState());
+                        _currentBoardStateIndex++;
+
+                        StartTurn(GetNextPlayer(ActivePlayer), _turnCancellationTokenSource.Token);
                     }
                     break;
                 }
         }
     }
 
-    private async void StartTurn()
+    private async void StartTurn(Player playerToActivate, CancellationToken cancellationToken)
     {
         _timeotCancellationTokenSource?.Cancel();
         _timeotCancellationTokenSource = new CancellationTokenSource();
 
-        ActivateNextPlayer();
+        _player1.Deactivate();
+        _player2.Deactivate();
+
+        playerToActivate.Activate();
 
         var playerTask = ActivePlayer.GetField(_boardSpawner, _timeotCancellationTokenSource.Token);
-        var timeouteTask = StartTurnCountdown(_timeotCancellationTokenSource.Token);
+        var timeoutTask = StartTurnCountdown(_timeotCancellationTokenSource.Token);
+
         Debug.Log(ActivePlayer.Name + "'s turn");
 
-        await Task.WhenAny(playerTask, timeouteTask);
+        while (!(playerTask.IsCompleted || timeoutTask.IsCompleted))
+        {
+            await Task.Yield();
+        }
+
         _timeotCancellationTokenSource.Cancel();
 
-        BoardButton selectedField = playerTask.Result;
-
-        if (selectedField != null)
+        if (playerTask.Status == TaskStatus.RanToCompletion)
         {
+            BoardButton selectedField = playerTask.Result;
             selectedField.SetOwner(ActivePlayer);
+            CheckBoard();
         }
-        else
+
+        else if (timeoutTask.Status == TaskStatus.RanToCompletion)
         {
             FinishGame(GetNextPlayer(ActivePlayer));
         }
-    }
 
-    private void ActivateNextPlayer()
-    {
-        if (ActivePlayer == null)
-        {
-            _startingPlayer.Activate();
-        }
-        else
-        {
-            Player activePlayer = ActivePlayer;
-            activePlayer?.Deactivate();
-            GetNextPlayer(activePlayer).Activate();
-        }
     }
 
     private async Task StartTurnCountdown(CancellationToken cancellationToken)
     {
         float timer = _timeLimit;
-        while (timer > 0 && !cancellationToken.IsCancellationRequested)
+        while (timer > 0)
         {
             timer -= Time.deltaTime;
             await Task.Yield();
-            //Debug.Log(timer);
         }
-
-
     }
 
     private void FinishGame(Player winner)
@@ -180,5 +191,67 @@ public class GameManager : MonoBehaviour
             Debug.Log("Draw!");
         }
         _startGameButton.gameObject.SetActive(true);
+    }
+
+    private void Undo()
+    {
+        int targetStateIndex = GetUndoTargetStateIndex();
+
+        if (targetStateIndex >= 0 && targetStateIndex < _boardStates.Count)
+        {
+            BoardState previousBoardState = _boardStates[targetStateIndex];
+            if (previousBoardState != null)
+            {
+                CancelCurrentTurn();
+                _currentBoardStateIndex = targetStateIndex;
+                _boardSpawner.LoadBoardState(previousBoardState);
+                Player playerToActivate = GetPlayerByFieldOwnerType(previousBoardState.ActivePlayer);
+                StartTurn(playerToActivate, _turnCancellationTokenSource.Token);
+            }
+        }
+    }
+
+    private void CancelCurrentTurn()
+    {
+        _turnCancellationTokenSource.Cancel();
+        _turnCancellationTokenSource = new CancellationTokenSource();
+    }
+
+    private int GetUndoTargetStateIndex()
+    {
+        if (_boardStates.Count < 1)
+        {
+            return -1;
+        }
+
+        int targetIndex = _currentBoardStateIndex - 1;
+
+        while (targetIndex >= 0)
+        {
+            BoardState boardState = _boardStates[targetIndex];
+            Player activePlayer = GetPlayerByFieldOwnerType(boardState.ActivePlayer);
+            if (activePlayer.Type == PlayerType.HumanPlayer)
+            {
+                break;
+            }
+            targetIndex--;
+        }
+
+        return targetIndex;
+    }
+
+    public Player GetPlayerByFieldOwnerType(FieldOwnerType fieldOwnerType)
+    {
+        if (_player1.FieldOwnerType == fieldOwnerType)
+        {
+            return _player1;
+        }
+
+        if (_player2.FieldOwnerType == fieldOwnerType)
+        {
+            return _player2;
+        }
+
+        return null;
     }
 }
