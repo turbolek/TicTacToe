@@ -97,5 +97,28 @@ namespace Tests
 
             Assert.AreEqual(WinnerState.Player2Wins, winnerState);
         }
+
+        [Test]
+        public void Draw()
+        {
+            BoardController boardController = new BoardController();
+            boardController.Init(3, 3, 3);
+
+            boardController.SetFieldState(1, FieldOwnerType.Player1);
+            boardController.SetFieldState(3, FieldOwnerType.Player1);
+            boardController.SetFieldState(5, FieldOwnerType.Player1);
+            boardController.SetFieldState(6, FieldOwnerType.Player1);
+            boardController.SetFieldState(8, FieldOwnerType.Player1);
+
+            boardController.SetFieldState(0, FieldOwnerType.Player2);
+            boardController.SetFieldState(2, FieldOwnerType.Player2);
+            boardController.SetFieldState(4, FieldOwnerType.Player2);
+            boardController.SetFieldState(7, FieldOwnerType.Player2);
+
+            WinnerState winnerState = boardController.GetWinnerState();
+
+            Assert.AreEqual(WinnerState.Draw, winnerState);
+        }
+
     }
 }
