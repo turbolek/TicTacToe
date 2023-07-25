@@ -34,8 +34,11 @@ public class BoardView : MonoBehaviour
 
         foreach (BoardButton boardButton in BoardButtons)
         {
-            FieldOwnerType fieldOwnerType = boardState.FieldOwners[boardButton.Index];
-            boardButton.SetOwner(_gameManager.GetPlayerByFieldOwnerType(fieldOwnerType));
+            if (boardState.FieldOwners != null && boardButton.Index < boardState.FieldOwners.Length)
+            {
+                FieldOwnerType fieldOwnerType = boardState.FieldOwners[boardButton.Index];
+                boardButton.SetOwner(_gameManager.GetPlayerByFieldOwnerType(fieldOwnerType));
+            }
         }
     }
 

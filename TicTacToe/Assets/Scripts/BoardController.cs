@@ -47,7 +47,6 @@ public class BoardController
     public void SetBoardState(BoardState boardState)
     {
         BoardState = boardState;
-        BoardStateChanged?.Invoke(BoardState);
     }
 
     public bool HasEmptyField()

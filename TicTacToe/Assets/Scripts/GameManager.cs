@@ -78,6 +78,7 @@ public class GameManager : MonoBehaviour
 
     private void StartGame()
     {
+        CancelCurrentTurn();
         _boardStates = new Stack<BoardState>();
         _player1 = new Player("Player 1", PlayerType.HumanPlayer, FieldOwnerType.Player1);
         _player2 = new Player("Player 2", PlayerType.CPU, FieldOwnerType.Player2);
@@ -224,8 +225,11 @@ public class GameManager : MonoBehaviour
 
     private void CancelCurrentTurn()
     {
-        _turnCancellationTokenSource.Cancel();
-        _turnCancellationTokenSource = new CancellationTokenSource();
+        if (_turnCancellationTokenSource != null)
+        {
+            _turnCancellationTokenSource.Cancel();
+            _turnCancellationTokenSource = new CancellationTokenSource();
+        }
     }
 
     private BoardState GetUndoTargetState()
