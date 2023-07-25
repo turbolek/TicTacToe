@@ -13,13 +13,10 @@ public class BoardButton : MonoBehaviour
     [SerializeField]
     private TMP_Text _text;
     public int Index { get; private set; }
-
-    private GameManager _gameManager;
     public Player Owner { get; private set; }
 
-    public void Initialize(int index, GameManager gameManager)
+    public void Initialize(int index)
     {
-        _gameManager = gameManager;
         Index = index;
         _button.onClick.AddListener(OnButtonClicked);
         SetOwner(null);

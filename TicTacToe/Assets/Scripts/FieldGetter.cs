@@ -3,5 +3,5 @@ using System.Threading.Tasks;
 
 public abstract class FieldGetter
 {
-    public abstract Task<BoardButton> GetField(BoardSpawner board, CancellationToken cancellationToken);
+    public abstract Task<int> GetFieldIndex(BoardState boardState, CancellationToken cancellationToken);
 }

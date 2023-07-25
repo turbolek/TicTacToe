@@ -29,7 +29,8 @@ public class GameManager : MonoBehaviour
     public int BoardWidth => _boardWidth;
 
     [SerializeField]
-    private BoardSpawner _boardSpawner;
+    private BoardView _boardView;
+    private BoardController _boardController;
 
     private CancellationTokenSource _timeotCancellationTokenSource;
     private CancellationTokenSource _turnCancellationTokenSource;
@@ -66,6 +67,9 @@ public class GameManager : MonoBehaviour
         _startGameButton.onClick.AddListener(StartGame);
         _undoButton.onClick.AddListener(Undo);
         _hintButton.onClick.AddListener(OnHintButtonClicked);
+
+        _boardController = new BoardController();
+
     }
 
     private void OnDestroy()
@@ -83,13 +87,14 @@ public class GameManager : MonoBehaviour
         GetNextPlayer(_startingPlayer).Mark = "O";
 
         CurrentGameState = GameState.Setup;
-        _boardSpawner.Clear();
-        _boardSpawner.Init(this);
+
+        _boardController.Init(this);
+        _boardView.Init(this, _boardController);
         CurrentGameState = GameState.Gameplay;
 
         _turnCancellationTokenSource = new CancellationTokenSource();
 
-        _boardStates.Push(_boardSpawner.GetCurrentBoardState());
+        _boardStates.Push(_boardController.BoardState.Copy());
 
         StartTurn(_startingPlayer, _turnCancellationTokenSource.Token);
     }
@@ -115,23 +120,23 @@ public class GameManager : MonoBehaviour
         return _startingPlayer;
     }
 
-    private void CheckBoard()
+    private void CheckBoard(int changedFieldIndex)
     {
         switch (CurrentGameState)
         {
             case GameState.Gameplay:
                 {
-                    if (_boardSpawner.LongestSequence >= _requiredSequenceLength)
+                    if (_boardController.GetLongestSequence(changedFieldIndex) >= _requiredSequenceLength)
                     {
                         FinishGame(ActivePlayer);
                     }
-                    else if (!_boardSpawner.HasEmptyField())
+                    else if (!_boardController.HasEmptyField())
                     {
                         FinishGame(null);
                     }
                     else
                     {
-                        _boardStates.Push(_boardSpawner.GetCurrentBoardState());
+                        _boardStates.Push(_boardController.BoardState.Copy());
 
                         StartTurn(GetNextPlayer(ActivePlayer), _turnCancellationTokenSource.Token);
                     }
@@ -153,7 +158,7 @@ public class GameManager : MonoBehaviour
         _hintButton.gameObject.SetActive(ActivePlayer.Type == PlayerType.HumanPlayer && GetNextPlayer(ActivePlayer).Type == PlayerType.CPU);
         _undoButton.gameObject.SetActive(ActivePlayer.Type == PlayerType.HumanPlayer && GetNextPlayer(ActivePlayer).Type == PlayerType.CPU);
 
-        var playerTask = ActivePlayer.GetField(_boardSpawner, _timeotCancellationTokenSource.Token);
+        var playerTask = ActivePlayer.GetFieldIndex(_boardController.BoardState, _timeotCancellationTokenSource.Token);
         var timeoutTask = StartTurnCountdown(_timeotCancellationTokenSource.Token);
 
         Debug.Log(ActivePlayer.Name + "'s turn");
@@ -169,9 +174,9 @@ public class GameManager : MonoBehaviour
 
             if (playerTask.Status == TaskStatus.RanToCompletion)
             {
-                BoardButton selectedField = playerTask.Result;
-                selectedField.SetOwner(ActivePlayer);
-                CheckBoard();
+                int selectedFieldIndex = playerTask.Result;
+                _boardController.SetFieldState(selectedFieldIndex, ActivePlayer.FieldOwnerType);
+                CheckBoard(selectedFieldIndex);
             }
 
             else if (timeoutTask.Status == TaskStatus.RanToCompletion)
@@ -210,8 +215,8 @@ public class GameManager : MonoBehaviour
         if (previousBoardState != null)
         {
             CancelCurrentTurn();
-            _boardSpawner.LoadBoardState(previousBoardState);
-            Player playerToActivate = GetNextPlayer(GetPlayerByFieldOwnerType(previousBoardState.ActivePlayer));
+            _boardController.LoadBoardState(previousBoardState);
+            Player playerToActivate = GetNextPlayer(GetPlayerByFieldOwnerType(previousBoardState.LastActivePlayer));
             _boardStates.Push(previousBoardState);
             StartTurn(playerToActivate, _turnCancellationTokenSource.Token);
         }
@@ -235,7 +240,7 @@ public class GameManager : MonoBehaviour
         while (_boardStates.Count > 0)
         {
             targetState = _boardStates.Pop();
-            Player activePlayer = GetPlayerByFieldOwnerType(targetState.ActivePlayer);
+            Player activePlayer = GetPlayerByFieldOwnerType(targetState.LastActivePlayer);
             if (activePlayer == null || activePlayer.Type == PlayerType.CPU)
             {
                 break;
@@ -267,6 +272,6 @@ public class GameManager : MonoBehaviour
 
     private void OnHintButtonClicked()
     {
-        _boardSpawner.ShowHintForPlayer(ActivePlayer);
+        _boardView.ShowHintForPlayer(ActivePlayer);
     }
 }

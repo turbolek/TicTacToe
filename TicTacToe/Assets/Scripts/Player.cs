@@ -27,10 +27,10 @@ public class Player
         IsActive = true;
     }
 
-    public async Task<BoardButton> GetField(BoardSpawner board, CancellationToken cancellationToken)
+    public async Task<int> GetFieldIndex(BoardState board, CancellationToken cancellationToken)
     {
-        BoardButton field = await _fieldGetter?.GetField(board, cancellationToken);
-        return field;
+        int fieldIndex = await _fieldGetter?.GetFieldIndex(board, cancellationToken);
+        return fieldIndex;
     }
 
     public void Deactivate()

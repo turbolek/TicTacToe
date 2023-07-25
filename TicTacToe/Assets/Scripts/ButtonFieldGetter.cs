@@ -5,7 +5,7 @@ public class ButtonFieldGetter : FieldGetter
 {
     private BoardButton _clickedButton;
 
-    public override async Task<BoardButton> GetField(BoardSpawner board, CancellationToken cancellationToken)
+    public override async Task<int> GetFieldIndex(BoardState boardState, CancellationToken cancellationToken)
     {
         _clickedButton = null;
         BoardButton.ButtonClicked += OnButtonClicked;
@@ -16,7 +16,7 @@ public class ButtonFieldGetter : FieldGetter
         }
 
         BoardButton.ButtonClicked -= OnButtonClicked;
-        return _clickedButton;
+        return _clickedButton.Index;
     }
 
     private void OnButtonClicked(BoardButton clickedButton)
