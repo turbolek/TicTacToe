@@ -44,4 +44,23 @@ public class BoardButton : MonoBehaviour
 
         ButtonStateChanged?.Invoke(this);
     }
+
+    public void Highlight(Player player)
+    {
+        if (Owner == null)
+        {
+            _text.color = Color.red;
+            _text.text = player.Mark;
+        }
+    }
+
+    public void ClearHiglight()
+    {
+        _text.color = Color.black;
+
+        if (Owner == null)
+        {
+            _text.text = "";
+        }
+    }
 }

@@ -14,6 +14,9 @@ public class GameManager : MonoBehaviour
     private Button _undoButton;
 
     [SerializeField]
+    private Button _hintButton;
+
+    [SerializeField]
     private float _timeLimit = 5f;
     [SerializeField]
     private int _requiredSequenceLength = 3;
@@ -62,6 +65,7 @@ public class GameManager : MonoBehaviour
     {
         _startGameButton.onClick.AddListener(StartGame);
         _undoButton.onClick.AddListener(Undo);
+        _hintButton.onClick.AddListener(OnHintButtonClicked);
     }
 
     private void OnDestroy()
@@ -258,5 +262,10 @@ public class GameManager : MonoBehaviour
     public FieldOwnerType GetActivePlayerFieldOwnerType()
     {
         return ActivePlayer != null ? ActivePlayer.FieldOwnerType : FieldOwnerType.Empty;
+    }
+
+    private void OnHintButtonClicked()
+    {
+        _boardSpawner.ShowHintForPlayer(ActivePlayer);
     }
 }

@@ -86,6 +86,34 @@ public class BoardSpawner : MonoBehaviour
         return false;
     }
 
+    public BoardButton GetBestMoveForPlayer(Player player)
+    {
+        BoardButton bestButton = null;
+        List<BoardButton> emptyButtons = new List<BoardButton>();
+
+        foreach (BoardButton boardButton in BoardButtons)
+        {
+            if (boardButton.Owner == null)
+            {
+                emptyButtons.Add(boardButton);
+            }
+        }
+
+        if (emptyButtons.Count > 0)
+        {
+            bestButton = emptyButtons[UnityEngine.Random.Range(0, emptyButtons.Count)];
+        }
+
+        return bestButton;
+    }
+
+    public void ShowHintForPlayer(Player player)
+    {
+        ClearBoardHiglight();
+        BoardButton buttonToHighlight = GetBestMoveForPlayer(player);
+        buttonToHighlight?.Highlight(player);
+    }
+
     private void OnFieldStateChanged(BoardButton button)
     {
         LongestSequence = GetLongestSequence(button);
@@ -286,6 +314,17 @@ public class BoardSpawner : MonoBehaviour
         foreach (BoardButton boardButton in BoardButtons)
         {
             boardButton.SetOwner(_gameManager.GetPlayerByFieldOwnerType(boardState.FieldOwners[boardButton.Index]));
+        }
+    }
+
+    private void ClearBoardHiglight()
+    {
+        if (BoardButtons != null)
+        {
+            foreach (BoardButton b in BoardButtons)
+            {
+                b?.ClearHiglight();
+            }
         }
     }
 }
