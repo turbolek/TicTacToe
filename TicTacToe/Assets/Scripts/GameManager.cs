@@ -82,7 +82,6 @@ public class GameManager : MonoBehaviour
         _startingPlayer.Mark = "X";
         GetNextPlayer(_startingPlayer).Mark = "O";
 
-        _startGameButton.gameObject.SetActive(false);
         CurrentGameState = GameState.Setup;
         _boardSpawner.Clear();
         _boardSpawner.Init(this);
@@ -151,6 +150,9 @@ public class GameManager : MonoBehaviour
 
         playerToActivate.Activate();
 
+        _hintButton.gameObject.SetActive(ActivePlayer.Type == PlayerType.HumanPlayer && GetNextPlayer(ActivePlayer).Type == PlayerType.CPU);
+        _undoButton.gameObject.SetActive(ActivePlayer.Type == PlayerType.HumanPlayer && GetNextPlayer(ActivePlayer).Type == PlayerType.CPU);
+
         var playerTask = ActivePlayer.GetField(_boardSpawner, _timeotCancellationTokenSource.Token);
         var timeoutTask = StartTurnCountdown(_timeotCancellationTokenSource.Token);
 
@@ -200,7 +202,6 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log("Draw!");
         }
-        _startGameButton.gameObject.SetActive(true);
     }
 
     private void Undo()
