@@ -89,13 +89,13 @@ public class GameManager : MonoBehaviour
 
         CurrentGameState = GameState.Setup;
 
-        _boardController.Init(this);
+        _boardController.Init(_boardWidth, _boardHeight, _requiredSequenceLength);
         _boardView.Init(this, _boardController);
         CurrentGameState = GameState.Gameplay;
 
         _turnCancellationTokenSource = new CancellationTokenSource();
 
-        _boardStates.Push(_boardController.BoardState.Copy());
+
 
         StartTurn(_startingPlayer, _turnCancellationTokenSource.Token);
     }
@@ -123,31 +123,22 @@ public class GameManager : MonoBehaviour
 
     private void CheckBoard(int changedFieldIndex)
     {
-        switch (CurrentGameState)
-        {
-            case GameState.Gameplay:
-                {
-                    if (_boardController.GetLongestSequence(changedFieldIndex) >= _requiredSequenceLength)
-                    {
-                        FinishGame(ActivePlayer);
-                    }
-                    else if (!_boardController.HasEmptyField())
-                    {
-                        FinishGame(null);
-                    }
-                    else
-                    {
-                        _boardStates.Push(_boardController.BoardState.Copy());
+        WinnerState winnerState = _boardController.GetWinnerState(changedFieldIndex);
 
-                        StartTurn(GetNextPlayer(ActivePlayer), _turnCancellationTokenSource.Token);
-                    }
-                    break;
-                }
+        if (winnerState == WinnerState.NotConcluded)
+        {
+            StartTurn(GetNextPlayer(ActivePlayer), _turnCancellationTokenSource.Token);
+        }
+        else
+        {
+            FinishGame(winnerState);
         }
     }
 
     private async void StartTurn(Player playerToActivate, CancellationToken cancellationToken)
     {
+        _boardStates.Push(_boardController.BoardState.Copy());
+
         _timeotCancellationTokenSource?.Cancel();
         _timeotCancellationTokenSource = new CancellationTokenSource();
 
@@ -182,7 +173,8 @@ public class GameManager : MonoBehaviour
 
             else if (timeoutTask.Status == TaskStatus.RanToCompletion)
             {
-                FinishGame(GetNextPlayer(ActivePlayer));
+                WinnerState winnerState = ActivePlayer == _player1 ? WinnerState.Player2Wins : WinnerState.Player1Wins;
+                FinishGame(winnerState);
             }
         }
     }
@@ -197,16 +189,27 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void FinishGame(Player winner)
+    private void FinishGame(WinnerState winnerState)
     {
         CurrentGameState = GameState.GameOver;
-        if (winner != null)
+
+        switch (winnerState)
         {
-            Debug.Log(winner.Name + " wins!");
-        }
-        else
-        {
-            Debug.Log("Draw!");
+            case WinnerState.Player1Wins:
+                {
+                    Debug.Log(_player1.Name + " wins!");
+                    break;
+                }
+            case WinnerState.Player2Wins:
+                {
+                    Debug.Log(_player2.Name + " wins!");
+                    break;
+                }
+            case WinnerState.Draw:
+                {
+                    Debug.Log("Draw!");
+                    break;
+                }
         }
     }
 

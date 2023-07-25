@@ -9,6 +9,7 @@ public class BoardController
     public Action<BoardState> BoardStateChanged;
 
     private int _boardHeight, _boardWidth;
+    private int _requiredSequenceLength;
 
     private BoardState _boardState;
     public BoardState BoardState
@@ -24,10 +25,11 @@ public class BoardController
         }
     }
 
-    public void Init(GameManager gameManager)
+    public void Init(int boardWidth, int boardHeight, int requiredSequenceLength)
     {
-        _boardHeight = gameManager.BoardHeight;
-        _boardWidth = gameManager.BoardWidth;
+        _boardHeight = boardWidth;
+        _boardWidth = boardHeight;
+        _requiredSequenceLength = requiredSequenceLength;
 
         BoardState = new BoardState();
         BoardState.Width = _boardWidth;
@@ -251,5 +253,49 @@ public class BoardController
         BoardState = boardState;
     }
 
+    public WinnerState GetWinnerState(int sourceFieldIndex)
+    {
+        int longestSequence = GetLongestSequence(sourceFieldIndex);
+        if (longestSequence >= _requiredSequenceLength)
+        {
+            FieldOwnerType fieldOwner = BoardState.FieldOwners[sourceFieldIndex];
+            if (fieldOwner == FieldOwnerType.Player1)
+            {
+                return WinnerState.Player1Wins;
+            }
+            else if (fieldOwner == FieldOwnerType.Player2)
+            {
+                return WinnerState.Player2Wins;
+            }
+            else
+            {
+                return WinnerState.InvalidState;
+            }
+        }
+        else
+        {
+            if (HasEmptyField())
+            {
+                return WinnerState.NotConcluded;
+            }
+            else
+            {
+                return WinnerState.Draw;
+            }
+        }
+    }
 
+    public WinnerState GetWinnerState()
+    {
+        for (int i = 0; i < BoardState.FieldOwners.Length; i++)
+        {
+            WinnerState winnerState = GetWinnerState(i);
+            if (winnerState != WinnerState.NotConcluded)
+            {
+                return winnerState;
+            }
+        }
+
+        return WinnerState.NotConcluded;
+    }
 }
