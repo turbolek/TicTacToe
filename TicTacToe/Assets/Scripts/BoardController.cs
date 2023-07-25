@@ -151,7 +151,7 @@ public class BoardController
         int currentIndex = sourceIndex;
         int neighbourIndex = firstGetNeighbourMethod.Invoke(currentIndex);
 
-        while (neighbourIndex >= 0 && BoardState.FieldOwners[neighbourIndex] == BoardState.FieldOwners[currentIndex])
+        while (BoardState.FieldOwners[currentIndex] != FieldOwnerType.Empty && neighbourIndex >= 0 && BoardState.FieldOwners[neighbourIndex] == BoardState.FieldOwners[currentIndex])
         {
             sequence++;
             currentIndex = neighbourIndex;
