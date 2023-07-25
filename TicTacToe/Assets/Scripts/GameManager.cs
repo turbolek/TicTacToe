@@ -221,7 +221,6 @@ public class GameManager : MonoBehaviour
             CancelCurrentTurn();
             _boardController.LoadBoardState(previousBoardState);
             Player playerToActivate = GetNextPlayer(GetPlayerByFieldOwnerType(previousBoardState.LastActivePlayer));
-            _boardStates.Push(previousBoardState);
             StartTurn(playerToActivate, _turnCancellationTokenSource.Token);
         }
     }
