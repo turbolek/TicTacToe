@@ -16,7 +16,13 @@ namespace Tests
         public void ClearBoard()
         {
             BoardController boardController = new BoardController();
-            boardController.Init(3, 3, 3);
+
+            GameSettings settings = new GameSettings();
+            settings.BoardHeight = 3;
+            settings.BoardWidth = 3;
+            settings.RequiredSequenceLength = 3;
+
+            boardController.Init(settings);
 
             WinnerState winnerState = boardController.GetWinnerState();
 
@@ -27,7 +33,13 @@ namespace Tests
         public void VerticalWin()
         {
             BoardController boardController = new BoardController();
-            boardController.Init(3, 3, 3);
+
+            GameSettings settings = new GameSettings();
+            settings.BoardHeight = 3;
+            settings.BoardWidth = 3;
+            settings.RequiredSequenceLength = 3;
+
+            boardController.Init(settings);
 
             boardController.SetFieldState(0, FieldOwnerType.Player1);
             boardController.SetFieldState(3, FieldOwnerType.Player1);
@@ -42,7 +54,13 @@ namespace Tests
         public void HorizontalWin()
         {
             BoardController boardController = new BoardController();
-            boardController.Init(3, 3, 3);
+
+            GameSettings settings = new GameSettings();
+            settings.BoardHeight = 3;
+            settings.BoardWidth = 3;
+            settings.RequiredSequenceLength = 3;
+
+            boardController.Init(settings);
 
             boardController.SetFieldState(0, FieldOwnerType.Player1);
             boardController.SetFieldState(1, FieldOwnerType.Player1);
@@ -57,7 +75,13 @@ namespace Tests
         public void DiagonalDescendingWin()
         {
             BoardController boardController = new BoardController();
-            boardController.Init(3, 3, 3);
+
+            GameSettings settings = new GameSettings();
+            settings.BoardHeight = 3;
+            settings.BoardWidth = 3;
+            settings.RequiredSequenceLength = 3;
+
+            boardController.Init(settings);
 
             boardController.SetFieldState(0, FieldOwnerType.Player1);
             boardController.SetFieldState(4, FieldOwnerType.Player1);
@@ -72,7 +96,13 @@ namespace Tests
         public void DiagonalAscendingWin()
         {
             BoardController boardController = new BoardController();
-            boardController.Init(3, 3, 3);
+
+            GameSettings settings = new GameSettings();
+            settings.BoardHeight = 3;
+            settings.BoardWidth = 3;
+            settings.RequiredSequenceLength = 3;
+
+            boardController.Init(settings);
 
             boardController.SetFieldState(6, FieldOwnerType.Player1);
             boardController.SetFieldState(4, FieldOwnerType.Player1);
@@ -87,7 +117,13 @@ namespace Tests
         public void OpponentWin()
         {
             BoardController boardController = new BoardController();
-            boardController.Init(3, 3, 3);
+
+            GameSettings settings = new GameSettings();
+            settings.BoardHeight = 3;
+            settings.BoardWidth = 3;
+            settings.RequiredSequenceLength = 3;
+
+            boardController.Init(settings);
 
             boardController.SetFieldState(0, FieldOwnerType.Player2);
             boardController.SetFieldState(1, FieldOwnerType.Player2);
@@ -102,7 +138,13 @@ namespace Tests
         public void Draw()
         {
             BoardController boardController = new BoardController();
-            boardController.Init(3, 3, 3);
+
+            GameSettings settings = new GameSettings();
+            settings.BoardHeight = 3;
+            settings.BoardWidth = 3;
+            settings.RequiredSequenceLength = 3;
+
+            boardController.Init(settings);
 
             boardController.SetFieldState(1, FieldOwnerType.Player1);
             boardController.SetFieldState(3, FieldOwnerType.Player1);

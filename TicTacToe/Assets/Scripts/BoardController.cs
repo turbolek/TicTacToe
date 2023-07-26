@@ -25,11 +25,11 @@ public class BoardController
         }
     }
 
-    public void Init(int boardWidth, int boardHeight, int requiredSequenceLength)
+    public void Init(GameSettings settings)
     {
-        _boardHeight = boardWidth;
-        _boardWidth = boardHeight;
-        _requiredSequenceLength = requiredSequenceLength;
+        _boardHeight = settings.BoardHeight;
+        _boardWidth = settings.BoardWidth;
+        _requiredSequenceLength = settings.RequiredSequenceLength;
 
         BoardState = new BoardState();
         BoardState.Width = _boardWidth;

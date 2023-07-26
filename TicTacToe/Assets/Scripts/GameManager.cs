@@ -9,24 +9,16 @@ public class GameManager : MonoBehaviour
 {
     [SerializeField]
     private Button _startGameButton;
-
     [SerializeField]
     private Button _undoButton;
-
     [SerializeField]
     private Button _hintButton;
+    [SerializeField]
+    private Button _mainMenuButton;
+    [SerializeField]
+    private GameObject _contentPanel;
 
-    [SerializeField]
-    private float _timeLimit = 5f;
-    [SerializeField]
-    private int _requiredSequenceLength = 3;
-    [SerializeField]
-    private int _boardHeight;
-    public int BoardHeight => _boardHeight;
-
-    [SerializeField]
-    private int _boardWidth;
-    public int BoardWidth => _boardWidth;
+    private MainMenuRequester _menuRequester;
 
     [SerializeField]
     private BoardView _boardView;
@@ -39,6 +31,9 @@ public class GameManager : MonoBehaviour
 
     private Player _player1;
     private Player _player2;
+
+    private GameSettings _gameSettings;
+
     public Player ActivePlayer
     {
         get
@@ -64,24 +59,29 @@ public class GameManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        _startGameButton.onClick.AddListener(StartGame);
+        _menuRequester = new MainMenuRequester();
+        _startGameButton.onClick.AddListener(delegate { StartGame(_gameSettings); });
         _undoButton.onClick.AddListener(Undo);
         _hintButton.onClick.AddListener(OnHintButtonClicked);
+        _mainMenuButton.onClick.AddListener(OnMainMenuButtonClicked);
 
         _boardController = new BoardController();
-
+        _contentPanel.SetActive(false);
     }
 
     private void OnDestroy()
     {
     }
 
-    private void StartGame()
+    public void StartGame(GameSettings settings)
     {
+        _contentPanel.SetActive(true);
+        _gameSettings = settings;
+
         CancelCurrentTurn();
         _boardStates = new Stack<BoardState>();
-        _player1 = new Player("Player 1", PlayerType.HumanPlayer, FieldOwnerType.Player1);
-        _player2 = new Player("Player 2", PlayerType.CPU, FieldOwnerType.Player2);
+        _player1 = new Player("Player 1", settings.Player1Type, FieldOwnerType.Player1);
+        _player2 = new Player("Player 2", settings.Player2Type, FieldOwnerType.Player2);
 
         _startingPlayer = GetStartingPlayer();
         _startingPlayer.Mark = "X";
@@ -89,7 +89,7 @@ public class GameManager : MonoBehaviour
 
         CurrentGameState = GameState.Setup;
 
-        _boardController.Init(_boardWidth, _boardHeight, _requiredSequenceLength);
+        _boardController.Init(settings);
         _boardView.Init(this, _boardController);
         CurrentGameState = GameState.Gameplay;
 
@@ -181,7 +181,7 @@ public class GameManager : MonoBehaviour
 
     private async Task StartTurnCountdown(CancellationToken cancellationToken)
     {
-        float timer = _timeLimit;
+        float timer = _gameSettings.TimeLimit;
         while (timer > 0)
         {
             timer -= Time.deltaTime;
@@ -279,5 +279,11 @@ public class GameManager : MonoBehaviour
     private void OnHintButtonClicked()
     {
         _boardView.ShowHintForPlayer(ActivePlayer);
+    }
+
+    private void OnMainMenuButtonClicked()
+    {
+        _menuRequester.RequestMainMenu();
+        _contentPanel.SetActive(false);
     }
 }
