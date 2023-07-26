@@ -23,6 +23,10 @@ public class GameManager : SerializedMonoBehaviour, ISkinable
     private TMP_Text _playerLabel;
     [SerializeField]
     private TMP_Text _timerLabel;
+    [SerializeField]
+    private GameObject _endgamePanel;
+    [SerializeField]
+    private TMP_Text _winnerLabel;
 
     private MainMenuRequester _menuRequester;
 
@@ -86,6 +90,8 @@ public class GameManager : SerializedMonoBehaviour, ISkinable
     public void StartGame(GameSettings settings)
     {
         _contentPanel.SetActive(true);
+        _endgamePanel.SetActive(false);
+
         _gameSettings = settings;
 
         CancelCurrentTurn();
@@ -223,20 +229,22 @@ public class GameManager : SerializedMonoBehaviour, ISkinable
         {
             case WinnerState.Player1Wins:
                 {
-                    Debug.Log(_player1.Name + " wins!");
+                    _winnerLabel.text = _player1.Name + " wins!";
                     break;
                 }
             case WinnerState.Player2Wins:
                 {
-                    Debug.Log(_player2.Name + " wins!");
+                    _winnerLabel.text = _player2.Name + " wins!";
                     break;
                 }
             case WinnerState.Draw:
                 {
-                    Debug.Log("Draw!");
+                    _winnerLabel.text = "It's a draw!";
                     break;
                 }
         }
+
+        _endgamePanel.SetActive(true);
     }
 
     private void Undo()
@@ -259,7 +267,6 @@ public class GameManager : SerializedMonoBehaviour, ISkinable
             _turnCancellationTokenSource = new CancellationTokenSource();
         }
     }
-
     private BoardState GetUndoTargetState()
     {
         BoardState targetState = null;
