@@ -135,6 +135,7 @@ public class BoardView : MonoBehaviour, ISkinable
             RectTransform previousRow = _rows[i - 1];
 
             Image separator = Instantiate(_horizontalSeparatorPrefab, _boardParent);
+            _separators.Add(separator);
             RectTransform rectTransform = separator.GetComponent<RectTransform>();
             rectTransform.anchorMin = new Vector2(0f, 1f);
             rectTransform.anchorMax = new Vector2(1f, 1f);
@@ -155,6 +156,7 @@ public class BoardView : MonoBehaviour, ISkinable
         {
             for (int i = _rows.Length - 1; i >= 0; i--)
             {
+                _rows[i].gameObject.SetActive(false);
                 Destroy(_rows[i].gameObject);
             }
         }
@@ -163,6 +165,7 @@ public class BoardView : MonoBehaviour, ISkinable
         {
             for (int i = _separators.Count - 1; i >= 0; i--)
             {
+                _separators[i].gameObject.SetActive(false);
                 Destroy(_separators[i].gameObject);
             }
         }
