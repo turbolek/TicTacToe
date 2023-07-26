@@ -1,0 +1,10 @@
+ManifestFileVersion: 0
+CRC: 1429465603
+AssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: moonactive
+      Dependencies: {}
+    Info_1:
+      Name: skinbundle
+      Dependencies: {}
