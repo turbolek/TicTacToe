@@ -845,7 +845,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -911,6 +911,11 @@ MonoBehaviour:
     type: 3}
   _boardRowPrefab: {fileID: 4148430418015116615, guid: cdb095a1d9bbc0f46844c72a8189dfc7,
     type: 3}
+  _verticalSeparatorPrefab: {fileID: 3430575723297815246, guid: ce663d2ce60354946839663d487cc2bf,
+    type: 3}
+  _horizontalSeparatorPrefab: {fileID: 3430575723297815246, guid: 2e2cd639432be114f9a701c3f6c1f11c,
+    type: 3}
+  _background: {fileID: 253850823}
 --- !u!1 &321253996
 GameObject:
   m_ObjectHideFlags: 0
@@ -1469,10 +1474,7 @@ MonoBehaviour:
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes:
-    - Name: _defaultSkin
-      Entry: 6
-      Data: 
+    SerializationNodes: []
   _startGameButton: {fileID: 376182115}
   _undoButton: {fileID: 2033629541}
   _hintButton: {fileID: 1202574357}
@@ -2552,7 +2554,7 @@ MonoBehaviour:
   m_BlockingObjects: 0
   m_BlockingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 55
 --- !u!114 &1259296769
 MonoBehaviour:
   m_ObjectHideFlags: 0

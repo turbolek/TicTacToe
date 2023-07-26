@@ -18,6 +18,14 @@ public class BoardButton : MonoBehaviour
     private Color _originalColor;
     private Color _highlightColor;
 
+    private RectTransform _rectTransform;
+    public RectTransform RectTransform => _rectTransform;
+
+    private void Awake()
+    {
+        _rectTransform = GetComponent<RectTransform>();
+    }
+
     public void Initialize(int index)
     {
         Index = index;
