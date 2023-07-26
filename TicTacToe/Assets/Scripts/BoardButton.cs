@@ -11,15 +11,21 @@ public class BoardButton : MonoBehaviour
     [SerializeField]
     private Button _button;
     [SerializeField]
-    private TMP_Text _text;
+    private Image _icon;
     public int Index { get; private set; }
     public Player Owner { get; private set; }
+
+    private Color _originalColor;
+    private Color _highlightColor;
 
     public void Initialize(int index)
     {
         Index = index;
         _button.onClick.AddListener(OnButtonClicked);
         SetOwner(null);
+
+        _originalColor = _icon.color;
+        _highlightColor = new Color(_originalColor.r, _originalColor.g, _originalColor.b, _originalColor.a / 2f);
     }
 
     private void OnButtonClicked()
@@ -32,11 +38,12 @@ public class BoardButton : MonoBehaviour
         Owner = owner;
         if (owner != null)
         {
-            _text.text = owner.Mark;
+            _icon.sprite = owner.Mark;
+            _icon.enabled = true;
         }
         else
         {
-            _text.text = "";
+            _icon.sprite = null;
         }
 
         ButtonStateChanged?.Invoke(this);
@@ -46,18 +53,21 @@ public class BoardButton : MonoBehaviour
     {
         if (Owner == null)
         {
-            _text.color = Color.red;
-            _text.text = player.Mark;
+            _icon.color = _highlightColor;
+            _icon.sprite = player.Mark;
+            _icon.enabled = true;
         }
     }
 
     public void ClearHiglight()
     {
-        _text.color = Color.black;
+        _icon.color = _originalColor;
 
         if (Owner == null)
         {
-            _text.text = "";
+            _icon.sprite = null;
+            _icon.enabled = false;
+
         }
     }
 }

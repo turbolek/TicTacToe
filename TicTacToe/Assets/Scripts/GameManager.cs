@@ -1,11 +1,12 @@
-﻿using System.Collections;
+﻿using Sirenix.OdinInspector;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class GameManager : MonoBehaviour
+public class GameManager : SerializedMonoBehaviour, ISkinable
 {
     [SerializeField]
     private Button _startGameButton;
@@ -33,6 +34,7 @@ public class GameManager : MonoBehaviour
     private Player _player2;
 
     private GameSettings _gameSettings;
+    private Skin _skin;
 
     public Player ActivePlayer
     {
@@ -84,8 +86,10 @@ public class GameManager : MonoBehaviour
         _player2 = new Player("Player 2", settings.Player2Type, FieldOwnerType.Player2);
 
         _startingPlayer = GetStartingPlayer();
-        _startingPlayer.Mark = "X";
-        GetNextPlayer(_startingPlayer).Mark = "O";
+
+        _startingPlayer.Mark = _skin.XIcon;
+        GetNextPlayer(_startingPlayer).Mark = _skin.OIcon;
+        _boardView.ApplySkin(_skin);
 
         CurrentGameState = GameState.Setup;
 
@@ -285,5 +289,10 @@ public class GameManager : MonoBehaviour
     {
         _menuRequester.RequestMainMenu();
         _contentPanel.SetActive(false);
+    }
+
+    public void ApplySkin(Skin skin)
+    {
+        _skin = skin;
     }
 }

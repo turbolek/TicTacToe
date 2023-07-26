@@ -6,7 +6,7 @@ using UnityEngine;
 public class Player
 {
     public string Name { get; private set; }
-    public string Mark;
+    public Sprite Mark;
     public bool IsActive { get; private set; }
 
     public FieldOwnerType FieldOwnerType { get; private set; }

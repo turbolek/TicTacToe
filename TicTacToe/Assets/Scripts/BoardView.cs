@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using UnityEngine;
 
-public class BoardView : MonoBehaviour
+public class BoardView : MonoBehaviour, ISkinable
 {
     [SerializeField]
     private Transform _boardParent;
@@ -103,5 +103,10 @@ public class BoardView : MonoBehaviour
                 b?.ClearHiglight();
             }
         }
+    }
+
+    public void ApplySkin(Skin skin)
+    {
+
     }
 }
