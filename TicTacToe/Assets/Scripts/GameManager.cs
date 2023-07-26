@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -18,6 +19,10 @@ public class GameManager : SerializedMonoBehaviour, ISkinable
     private Button _mainMenuButton;
     [SerializeField]
     private GameObject _contentPanel;
+    [SerializeField]
+    private TMP_Text _playerLabel;
+    [SerializeField]
+    private TMP_Text _timerLabel;
 
     private MainMenuRequester _menuRequester;
 
@@ -35,6 +40,9 @@ public class GameManager : SerializedMonoBehaviour, ISkinable
 
     private GameSettings _gameSettings;
     private Skin _skin;
+
+    private string _timeSeparatorString = ":";
+    private string _twoDigitFormatString = "00";
 
     public Player ActivePlayer
     {
@@ -141,6 +149,7 @@ public class GameManager : SerializedMonoBehaviour, ISkinable
 
     private async void StartTurn(Player playerToActivate, CancellationToken cancellationToken)
     {
+        _playerLabel.text = playerToActivate.Name;
         _boardStates.Push(_boardController.BoardState.Copy());
 
         _timeotCancellationTokenSource?.Cancel();
@@ -189,8 +198,21 @@ public class GameManager : SerializedMonoBehaviour, ISkinable
         while (timer > 0)
         {
             timer -= Time.deltaTime;
+            timer = Mathf.Clamp(timer, 0f, _gameSettings.TimeLimit);
+            _timerLabel.text = FormatTimeString(timer);
             await Task.Yield();
         }
+    }
+
+    private string FormatTimeString(float time)
+    {
+        int minutes = (int)(time / 60);
+        time -= minutes;
+        int seconds = (int)time;
+        time -= seconds;
+        int miliseconds = (int)(time * 1000);
+
+        return string.Concat(minutes.ToString(_twoDigitFormatString), _timeSeparatorString, seconds.ToString(_twoDigitFormatString), _timeSeparatorString, miliseconds.ToString(_twoDigitFormatString));
     }
 
     private void FinishGame(WinnerState winnerState)
