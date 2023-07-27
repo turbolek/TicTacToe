@@ -76,7 +76,6 @@ public class BoardButton : MonoBehaviour
         {
             _icon.sprite = null;
             _icon.enabled = false;
-
         }
     }
 }

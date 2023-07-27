@@ -162,5 +162,8 @@ namespace Tests
             Assert.AreEqual(WinnerState.Draw, winnerState);
         }
 
+        //TODO add timeout tests
+        //TODO add undo tests
+        //TODO get hint tests
     }
 }

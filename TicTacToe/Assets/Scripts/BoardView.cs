@@ -58,6 +58,8 @@ public class BoardView : MonoBehaviour, ISkinable
 
     public void ShowHintForPlayer(Player player)
     {
+        //TODO should return hinted field to make it testable
+
         int hintButtonIndex = _boardController.GetBestMoveForPlayer(player);
         foreach (BoardButton button in BoardButtons)
         {
@@ -70,6 +72,8 @@ public class BoardView : MonoBehaviour, ISkinable
 
     private void SpawnButtons(int boardWidth, int boardHeight)
     {
+        // TODO no need to Destroy and Instantiate board objects every time.
+        // Could use object pool for reusable objects
 
         _rows = new RectTransform[boardHeight];
         BoardButtons = new BoardButton[boardHeight * boardWidth];
@@ -179,7 +183,6 @@ public class BoardView : MonoBehaviour, ISkinable
     {
         ClearBoard();
         _boardController.BoardStateChanged -= DisplayBoardState;
-
     }
 
     private void ClearBoardHiglight()
@@ -196,5 +199,9 @@ public class BoardView : MonoBehaviour, ISkinable
     public void ApplySkin(Skin skin)
     {
         _background.sprite = skin.Background;
+        foreach (Image separator in _separators)
+        {
+            separator.sprite = skin.Line;
+        }
     }
 }

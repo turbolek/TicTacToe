@@ -253,7 +253,7 @@ public class BoardController
         BoardState = boardState;
     }
 
-    public WinnerState GetWinnerState(int sourceFieldIndex)
+    public WinnerState GetWinnerState(int sourceFieldIndex) //In continous gameplay a winning formation must contains the most recently changed field, so no need to check every field
     {
         int longestSequence = GetLongestSequence(sourceFieldIndex);
         if (longestSequence >= _requiredSequenceLength)
@@ -285,7 +285,7 @@ public class BoardController
         }
     }
 
-    public WinnerState GetWinnerState()
+    public WinnerState GetWinnerState() //Check for winning formations when most recently changed field is unknown. Useful in tests and load situations
     {
         for (int i = 0; i < BoardState.FieldOwners.Length; i++)
         {

@@ -28,7 +28,7 @@ public class GameManager : SerializedMonoBehaviour, ISkinable
     [SerializeField]
     private TMP_Text _winnerLabel;
 
-    private MainMenuRequester _menuRequester;
+    private MainMenuRequester _menuRequester; //Using non-MonoBehaviour object for communication to avoid cross reference
 
     [SerializeField]
     private BoardView _boardView;
@@ -45,6 +45,7 @@ public class GameManager : SerializedMonoBehaviour, ISkinable
     private GameSettings _gameSettings;
     private Skin _skin;
 
+    //Caching strings for better optimization
     private string _timeSeparatorString = ":";
     private string _twoDigitFormatString = "00";
 
@@ -113,8 +114,6 @@ public class GameManager : SerializedMonoBehaviour, ISkinable
 
         _turnCancellationTokenSource = new CancellationTokenSource();
 
-
-
         StartTurn(_startingPlayer, _turnCancellationTokenSource.Token);
     }
 
@@ -158,28 +157,27 @@ public class GameManager : SerializedMonoBehaviour, ISkinable
         _playerLabel.text = playerToActivate.Name;
         _boardStates.Push(_boardController.BoardState.Copy());
 
-        _timeotCancellationTokenSource?.Cancel();
-        _timeotCancellationTokenSource = new CancellationTokenSource();
+        _timeotCancellationTokenSource?.Cancel(); //Cancel previous turn's tasks.
+        _timeotCancellationTokenSource = new CancellationTokenSource(); //Reset token so previous turns cancellations don't impact new turn
 
         _player1.Deactivate();
         _player2.Deactivate();
 
         playerToActivate.Activate();
 
+        //TODO additional validation is required in case there will be other ways to call Hint and Undo than ui buttons (ex. hotkeys) 
         _hintButton.gameObject.SetActive(ActivePlayer.Type == PlayerType.HumanPlayer && GetNextPlayer(ActivePlayer).Type == PlayerType.CPU);
         _undoButton.gameObject.SetActive(ActivePlayer.Type == PlayerType.HumanPlayer && GetNextPlayer(ActivePlayer).Type == PlayerType.CPU);
 
         var playerTask = ActivePlayer.GetFieldIndex(_boardController.BoardState, _timeotCancellationTokenSource.Token);
         var timeoutTask = StartTurnCountdown(_timeotCancellationTokenSource.Token);
 
-        Debug.Log(ActivePlayer.Name + "'s turn");
-
         while (!(playerTask.IsCompleted || timeoutTask.IsCompleted || cancellationToken.IsCancellationRequested))
         {
             await Task.Yield();
         }
 
-        _timeotCancellationTokenSource.Cancel();
+        _timeotCancellationTokenSource.Cancel(); //Cancel timeout when player input task completes or the other way around
         if (!cancellationToken.IsCancellationRequested)
         {
 
@@ -205,13 +203,14 @@ public class GameManager : SerializedMonoBehaviour, ISkinable
         {
             timer -= Time.deltaTime;
             timer = Mathf.Clamp(timer, 0f, _gameSettings.TimeLimit);
-            _timerLabel.text = FormatTimeString(timer);
+            _timerLabel.text = FormatTimeString(timer); //TODO should not be handled by GameManager. Use React or observer pattern
             await Task.Yield();
         }
     }
 
     private string FormatTimeString(float time)
     {
+        //TODO should be a static helper method
         int minutes = (int)(time / 60);
         time -= minutes;
         int seconds = (int)time;
@@ -223,12 +222,14 @@ public class GameManager : SerializedMonoBehaviour, ISkinable
 
     private void FinishGame(WinnerState winnerState)
     {
+        //TODO winner state should be readable from outside to make it testable
         CurrentGameState = GameState.GameOver;
 
         switch (winnerState)
         {
             case WinnerState.Player1Wins:
                 {
+                    //TODO should not be handled by GameManager
                     _winnerLabel.text = _player1.Name + " wins!";
                     break;
                 }
@@ -273,14 +274,14 @@ public class GameManager : SerializedMonoBehaviour, ISkinable
 
         if (_boardStates.Count > 0)
         {
-            targetState = _boardStates.Pop();
+            targetState = _boardStates.Pop(); //Remove current state
         }
 
         while (_boardStates.Count > 0)
         {
             targetState = _boardStates.Pop();
             Player activePlayer = GetPlayerByFieldOwnerType(targetState.LastActivePlayer);
-            if (activePlayer == null || activePlayer.Type == PlayerType.CPU)
+            if (activePlayer == null || activePlayer.Type == PlayerType.CPU) //Undo to last state where Human Player was active. Otherwise CPU player will immediately redo its move as player won't be able to undo further
             {
                 break;
             }
@@ -322,6 +323,8 @@ public class GameManager : SerializedMonoBehaviour, ISkinable
 
     public void ApplySkin(Skin skin)
     {
+        //Skinable board field icons depend on players order which is determined on game start and may vary between games. 
+        //Hence only cache the skin here and use it on game start
         _skin = skin;
     }
 }

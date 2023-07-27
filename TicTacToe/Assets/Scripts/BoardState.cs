@@ -2,7 +2,7 @@
 {
     public int Width;
     public int Height;
-    public FieldOwnerType LastActivePlayer;
+    public FieldOwnerType LastActivePlayer; //using enum instead of player reference to simplify potential serialization for saves or online gameplay
     public FieldOwnerType[] FieldOwners;
 
     public BoardState Copy()
