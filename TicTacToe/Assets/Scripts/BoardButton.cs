@@ -52,6 +52,7 @@ public class BoardButton : MonoBehaviour
         else
         {
             _icon.sprite = null;
+            _icon.enabled = false;
         }
 
         ButtonStateChanged?.Invoke(this);
