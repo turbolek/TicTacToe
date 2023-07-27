@@ -15,9 +15,15 @@ public class MainMenu : MonoBehaviour
     private StartGameButton[] _startGameButtons;
 
     [SerializeField]
+    private Button _customSettingsButton;
+
+    [SerializeField]
     private Button _loadSkinButton;
     [SerializeField]
     private TMP_InputField _skinNameTextField;
+
+    [SerializeField]
+    private CustomSettingsManager _customSettingsManager;
 
     private void Start()
     {
@@ -29,6 +35,7 @@ public class MainMenu : MonoBehaviour
         }
 
         _loadSkinButton.onClick.AddListener(OnSkinButtonClicked);
+        _customSettingsButton.onClick.AddListener(OnCustomSettingsButtonClicked);
 
         _skinManager.Init();
         Open();
@@ -41,9 +48,14 @@ public class MainMenu : MonoBehaviour
 
     private void OnStartGameButtonClicked(StartGameButton button)
     {
+        StartGame(button.GameSettings);
+    }
+
+    private void StartGame(GameSettings settings)
+    {
         Close();
         _skinManager.ApplyCurrentSkin();
-        _gameManager.StartGame(button.GameSettings);
+        _gameManager.StartGame(settings);
     }
 
     private void OnMainMenuRequested()
@@ -66,6 +78,20 @@ public class MainMenu : MonoBehaviour
         _loadSkinButton.interactable = false;
         await _skinManager.LoadSkin(_skinNameTextField.text);
         _loadSkinButton.interactable = true;
+    }
+
+    private async void OnCustomSettingsButtonClicked()
+    {
+        Close();
+        GameSettings customSettings = await _customSettingsManager.GetCustomSettings();
+        if (_customSettingsButton != null)
+        {
+            StartGame(customSettings);
+        }
+        else
+        {
+            Open();
+        }
     }
 }
 
