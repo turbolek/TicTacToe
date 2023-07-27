@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 2773300197
+CRC: 575586780
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: f294faac27177f77a508387f0f5ed82f
+    Hash: 583b4ed02a6ccc9fbea5d1117b44f95d
   TypeTreeHash:
     serializedVersion: 2
     Hash: c90fc19e2679e5295d10bd00f33cb4c3
@@ -15,5 +15,8 @@ ClassTypes:
   Script: {instanceID: 0}
 SerializeReferenceClassIdentifiers: []
 Assets:
+- Assets/Textures/Moon Active/ExTarget.png
 - Assets/Textures/Moon Active/Line.png
+- Assets/Textures/Moon Active/CircleTarget.png
+- Assets/Textures/Moon Active/EmptyBG.png
 Dependencies: []

@@ -69,7 +69,8 @@ public class SkinManager : SerializedMonoBehaviour
                 await Task.Yield();
             }
 
-            return request.asset as Sprite;
+            Texture2D texture = request.asset as Texture2D;
+            return Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
         }
 
         return null;

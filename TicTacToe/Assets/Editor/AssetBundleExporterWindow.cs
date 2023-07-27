@@ -46,21 +46,26 @@ public class AssetBundleExporterWindow : EditorWindow
                 Debug.LogError("Asset bundle export failed. Not all assets assigned.");
                 return;
             }
-            var xAssetImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(_xIcon));
+            var xPath = AssetDatabase.GetAssetPath(_xIcon);
+            var xAssetImporter = AssetImporter.GetAtPath(xPath);
             xAssetImporter.assetBundleName = _assetBundleName;
             xAssetImporter.name = "xIcon";
+            AssetDatabase.RenameAsset(xPath, SkinManager.X_ICON_NAME);
 
-            var oAssetImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(_oIcon));
+            var oPath = AssetDatabase.GetAssetPath(_oIcon);
+            var oAssetImporter = AssetImporter.GetAtPath(oPath);
             oAssetImporter.assetBundleName = _assetBundleName;
-            oAssetImporter.name = "oIcon";
+            AssetDatabase.RenameAsset(oPath, SkinManager.O_ICON_NAME);
 
-            var backgroundAssetImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(_background));
+            var backgroundPath = AssetDatabase.GetAssetPath(_background);
+            var backgroundAssetImporter = AssetImporter.GetAtPath(backgroundPath);
             backgroundAssetImporter.assetBundleName = _assetBundleName;
-            backgroundAssetImporter.name = "background";
+            AssetDatabase.RenameAsset(backgroundPath, SkinManager.BACKGROUND_NAME);
 
-            var lineAssetImporter = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(_line));
+            var linePath = AssetDatabase.GetAssetPath(_line);
+            var lineAssetImporter = AssetImporter.GetAtPath(linePath);
             lineAssetImporter.assetBundleName = _assetBundleName;
-            lineAssetImporter.name = "line";
+            AssetDatabase.RenameAsset(linePath, SkinManager.LINE_NAME);
 
             if (!Directory.Exists(Application.streamingAssetsPath))
             {

@@ -1,10 +1,10 @@
 ManifestFileVersion: 0
-CRC: 1429465603
+CRC: 1574473766
 AssetBundleManifest:
   AssetBundleInfos:
     Info_0:
       Name: moonactive
       Dependencies: {}
     Info_1:
-      Name: skinbundle
+      Name: sea
       Dependencies: {}
